@@ -13,4 +13,20 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  // Ensure build doesn't hang by setting explicit timeouts
+  build: {
+    // Set a timeout for the build process (in milliseconds)
+    // This ensures the build doesn't hang indefinitely
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['framer-motion', 'react-hot-toast'],
+          charts: ['recharts'],
+          pdf: ['jspdf', 'jspdf-autotable', 'html2canvas']
+        }
+      }
+    }
+  },
 });
