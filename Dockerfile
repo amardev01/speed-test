@@ -10,7 +10,9 @@ RUN npm ci
 
 # Copy frontend source code and build
 COPY project/ ./
-RUN npm run build
+# Ensure the build command has all necessary environment variables
+ENV NODE_ENV=production
+RUN npm run build || (echo "Build failed" && exit 1)
 
 # Stage 2: Build the Node.js backend
 FROM node:18-alpine AS backend-build

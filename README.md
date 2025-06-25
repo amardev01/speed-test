@@ -98,9 +98,38 @@ The frontend is configured to connect to the backend using the settings in `proj
 
 ## Deployment
 
-### Docker Deployment (Recommended)
+### Railway Deployment (Recommended)
 
-The easiest way to deploy the application is using Docker:
+The easiest way to deploy the application is using Railway.com:
+
+1. Create an account on [Railway](https://railway.app/) if you don't have one
+
+2. Connect your GitHub repository to Railway
+
+3. Create a new project and select your repository
+
+4. Configure the project with the following settings:
+   - Root Directory: `/` (root of the repository)
+   - Build Command: `npm run build:all`
+   - Start Command: `npm start`
+
+5. Add the following environment variables in Railway dashboard:
+   - `PORT`: `3000`
+   - `NODE_ENV`: `production`
+   - `ENABLE_CLUSTER`: `true`
+   - `RATE_LIMIT_WINDOW_MS`: `60000`
+   - `RATE_LIMIT_MAX_REQUESTS`: `100`
+   - `KEEP_ALIVE_TIMEOUT`: `65000`
+   - `HEADERS_TIMEOUT`: `66000`
+   - `VITE_API_BASE_URL`: Your Railway app URL (e.g., `https://your-app-name.railway.app`)
+
+6. Deploy the application by clicking the "Deploy" button
+
+7. Once deployed, Railway will provide you with a URL to access your application
+
+### Docker Deployment
+
+Alternatively, you can deploy the application using Docker:
 
 1. Make sure Docker and Docker Compose are installed on your system
 
