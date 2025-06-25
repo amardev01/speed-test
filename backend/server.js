@@ -10,9 +10,42 @@ import helmet from 'helmet';
 import v8 from 'v8';
 import { WebSocketServer } from 'ws';
 import http from 'http';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { createWriteStream } from 'fs';
+
+// Load environment variables from .env file if present
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const envPath = path.resolve(__dirname, '.env');
+
+if (fs.existsSync(envPath)) {
+  console.log(`Loading environment variables from ${envPath}`);
+  const envConfig = fs.readFileSync(envPath, 'utf8')
+    .split('\n')
+    .filter(line => line.trim() && !line.startsWith('#'))
+    .reduce((acc, line) => {
+      const [key, value] = line.split('=');
+      if (key && value) {
+        acc[key.trim()] = value.trim();
+        // Don't set process.env for sensitive values to avoid logging them
+        if (!key.includes('SECRET') && !key.includes('KEY')) {
+          process.env[key.trim()] = value.trim();
+        }
+      }
+      return acc;
+    }, {});
+  
+  console.log(`Loaded ${Object.keys(envConfig).length} environment variables`);
+}
 
 // Port configuration
 const PORT = process.env.PORT || 3000;
+console.log(`Server will run on port ${PORT}`);
+
+// Determine if cluster mode should be enabled
+const ENABLE_CLUSTER = process.env.ENABLE_CLUSTER === 'true' || true;
 
 // Track server performance metrics
 const serverStats = {
@@ -53,7 +86,7 @@ function updateRequestStats(endpoint) {
 const numCPUs = os.cpus().length;
 
 // Implement clustering for better performance
-if (cluster.isPrimary) {
+if (cluster.isPrimary && ENABLE_CLUSTER) {
   console.log(`Master process ${process.pid} is running`);
   console.log(`Starting ${numCPUs} workers...`);
   
@@ -131,26 +164,59 @@ if (cluster.isPrimary) {
   const app = express();
   
   // Performance optimization: increase default socket timeout
-  app.set('keepAliveTimeout', 65000); // 65 seconds
-  app.set('headersTimeout', 66000); // 66 seconds
+  const keepAliveTimeout = parseInt(process.env.KEEP_ALIVE_TIMEOUT) || 65000; // Default: 65 seconds
+  const headersTimeout = parseInt(process.env.HEADERS_TIMEOUT) || 66000; // Default: 66 seconds
+  
+  app.set('keepAliveTimeout', keepAliveTimeout);
+  app.set('headersTimeout', headersTimeout);
+  
+  console.log(`Performance settings: keepAliveTimeout=${keepAliveTimeout}ms, headersTimeout=${headersTimeout}ms`);
   
   // Apply rate limiting to prevent abuse
   const apiLimiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // 1 minute
-    max: 500, // 500 requests per minute per IP
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 60000, // Default: 1 minute
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500, // Default: 500 requests per window per IP
     standardHeaders: true,
     legacyHeaders: false,
     message: 'Too many requests, please try again later.'
   });
   
+  console.log(`Rate limiting: ${apiLimiter.options.max} requests per ${apiLimiter.options.windowMs/1000}s`);
+  
   // Middleware
   app.use(helmet()); // Security headers
   app.use(compression()); // Compress responses
   app.use(cors());
-  app.use(morgan('dev', {
-    // Skip logging for high-volume endpoints to reduce overhead
-    skip: (req) => req.url.includes('/download') || req.url.includes('/upload')
-  }));
+  // Set up logging
+  const logsDir = path.join(__dirname, 'logs');
+  
+  // Create logs directory if it doesn't exist
+  if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir, { recursive: true });
+  }
+  
+  // Configure logging based on environment
+  if (process.env.NODE_ENV === 'production') {
+    // In production, log to file
+    const accessLogStream = createWriteStream(
+      path.join(logsDir, 'access.log'), 
+      { flags: 'a' }
+    );
+    
+    app.use(morgan('combined', {
+      stream: accessLogStream,
+      // Skip logging for high-volume endpoints to reduce overhead
+      skip: (req) => req.url.includes('/download') || req.url.includes('/upload')
+    }));
+    
+    console.log(`Logging to ${path.join(logsDir, 'access.log')}`);
+  } else {
+    // In development, log to console
+    app.use(morgan('dev', {
+      // Skip logging for high-volume endpoints to reduce overhead
+      skip: (req) => req.url.includes('/download') || req.url.includes('/upload')
+    }));
+  }
   app.use(express.json({ limit: '50mb' }));
   app.use(express.raw({ type: 'application/octet-stream', limit: '50mb' }));
   
