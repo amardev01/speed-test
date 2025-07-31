@@ -124,59 +124,7 @@ const NewSpeedTest: React.FC<NewSpeedTestProps> = ({ onTestComplete }) => {
     tempEngine.dispose();
   }, []);
 
-  // Auto-start effect with improved timing and reliability for Cloudflare Pages
-  useEffect(() => {
-    console.log('Auto-start effect triggered:', {
-      autoStarted,
-      isTestRunning,
-      testResult,
-      availableServersLength: availableServers.length,
-      documentReady: document.readyState,
-      windowLoaded: typeof window !== 'undefined'
-    });
-    
-    // Enhanced conditions for auto-start
-    const shouldAutoStart = !autoStarted && 
-                           !isTestRunning && 
-                           !testResult && 
-                           availableServers.length > 0 &&
-                           typeof window !== 'undefined' &&
-                           document.readyState === 'complete';
-    
-    if (shouldAutoStart) {
-      console.log('Starting auto-start timer...');
-      const timer = setTimeout(() => {
-        console.log('Auto-starting speed test...');
-        setAutoStarted(true);
-        startTest();
-      }, 2000); // Increased delay for Cloudflare Pages
-
-      return () => {
-        console.log('Clearing auto-start timer');
-        clearTimeout(timer);
-      };
-    }
-  }, [autoStarted, isTestRunning, testResult, availableServers]);
-
-  // Additional effect to handle document ready state changes
-  useEffect(() => {
-    if (document.readyState !== 'complete') {
-      const handleLoad = () => {
-        console.log('Document fully loaded, checking auto-start conditions');
-        // Trigger a re-check of auto-start conditions
-        if (!autoStarted && !isTestRunning && !testResult && availableServers.length > 0) {
-          setTimeout(() => {
-            console.log('Auto-starting after document load...');
-            setAutoStarted(true);
-            startTest();
-          }, 1000);
-        }
-      };
-      
-      window.addEventListener('load', handleLoad);
-      return () => window.removeEventListener('load', handleLoad);
-    }
-  }, [autoStarted, isTestRunning, testResult, availableServers]);
+  // Auto-start functionality completely disabled - manual start only
 
   // Redirect to results page after test completion
   useEffect(() => {
