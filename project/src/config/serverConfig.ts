@@ -22,8 +22,14 @@ const getBaseUrl = (): string => {
     return import.meta.env.VITE_API_BASE_URL;
   }
   
-  // In production (Cloudflare Pages), use the current origin
+  // In production, check if we're on Render or Cloudflare
   if (import.meta.env.PROD) {
+    // For Render deployment, use separate backend service
+    if (window.location.hostname.includes('onrender.com')) {
+      // This will be set via environment variable in Render
+      return import.meta.env.VITE_API_BASE_URL || 'https://speedtest-backend.onrender.com';
+    }
+    // For Cloudflare Pages, use the current origin
     return window.location.origin;
   }
   
@@ -40,13 +46,18 @@ const getWebSocketUrl = (): string => {
   
   const baseUrl = getBaseUrl();
   
-  // In production (Cloudflare Pages), use WSS with the current origin
+  // In production, handle different platforms
   if (import.meta.env.PROD) {
+    // For Render deployment, WebSocket is on the backend service
+    if (window.location.hostname.includes('onrender.com') || baseUrl.includes('onrender.com')) {
+      return baseUrl.replace('https://', 'wss://').replace('http://', 'ws://');
+    }
+    // For Cloudflare Pages, use functions/websocket
     return baseUrl.replace('https://', 'wss://').replace('http://', 'ws://') + '/functions/websocket';
   }
   
   // Development fallback
-  return 'ws://localhost:3000/functions/websocket';
+  return 'ws://localhost:3000';
 };
 
 const serverConfig: ServerConfig = {

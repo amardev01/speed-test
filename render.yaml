@@ -1,27 +1,31 @@
 services:
-  # Backend API service
+  # Backend API Service
   - type: web
     name: speedtest-backend
     env: node
-    buildCommand: npm run build:backend
+    plan: free
+    buildCommand: cd backend && npm ci
     startCommand: cd backend && npm start
-    healthCheckPath: /ping
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 3000
+        value: 10000
 
-  # Frontend service
+  # Frontend Web Service (for SPA routing)
   - type: web
     name: speedtest-frontend
-    env: static
-    buildCommand: npm run build
-    staticPublishPath: ./project/dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+    env: node
+    plan: free
+    buildCommand: cd project && npm ci && npm run build
+    startCommand: cd project && npm start
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 10000
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: speedtest-backend
+          property: host
