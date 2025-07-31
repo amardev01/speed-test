@@ -42,11 +42,11 @@ const getWebSocketUrl = (): string => {
   
   // In production (Cloudflare Pages), use WSS with the current origin
   if (import.meta.env.PROD) {
-    return baseUrl.replace('https://', 'wss://').replace('http://', 'ws://') + '/websocket';
+    return baseUrl.replace('https://', 'wss://').replace('http://', 'ws://') + '/functions/websocket';
   }
   
   // Development fallback
-  return 'ws://localhost:3000';
+  return 'ws://localhost:3000/functions/websocket';
 };
 
 const serverConfig: ServerConfig = {

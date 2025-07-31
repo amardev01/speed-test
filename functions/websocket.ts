@@ -3,7 +3,8 @@
  * This replaces the traditional WebSocket server functionality
  */
 
-export class WebSocketState extends DurableObject {
+// Make sure this class is properly exported for Cloudflare Pages Functions
+export default class WebSocketState extends DurableObject {
   private sessions: Map<WebSocket, any> = new Map();
   
   constructor(state: DurableObjectState, env: any) {
@@ -198,6 +199,9 @@ export class WebSocketState extends DurableObject {
     }));
   }
 }
+
+// Export the class with both default and named exports for compatibility
+export { WebSocketState };
 
 // WebSocket upgrade endpoint
 export async function onRequestGET(context: any) {
