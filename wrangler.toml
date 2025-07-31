@@ -9,7 +9,7 @@ name = "speed-test-app"
 name = "speed-test-app-preview"
 
 # Pages configuration
-pages_build_output_dir = "dist"
+pages_build_output_dir = "project/dist"
 
 # Environment variables
 [vars]

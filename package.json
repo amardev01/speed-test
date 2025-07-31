@@ -6,7 +6,7 @@
     "build": "cd project && npm install && npm run build",
     "build:backend": "cd backend && npm ci --only=production",
     "build:all": "npm run build:backend && npm run build",
-    "build:cf": "cd project && npm install && npm run build",
+    "build:cf": "cd project && npm install && npm run build && cd .. && xcopy functions project\\dist\\functions /E /I /Y",
     "start": "cd backend && npm start",
     "vercel-build": "cd project && npm ci && npm run build",
     "cf:deploy": "wrangler pages deploy project/dist",
