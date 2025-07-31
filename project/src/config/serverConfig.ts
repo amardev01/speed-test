@@ -24,10 +24,9 @@ const getBaseUrl = (): string => {
   
   // In production, check if we're on Render or Cloudflare
   if (import.meta.env.PROD) {
-    // For Render deployment, use separate backend service
+    // For Render deployment, use relative URLs since frontend and backend are served together
     if (window.location.hostname.includes('onrender.com')) {
-      // This will be set via environment variable in Render
-      return import.meta.env.VITE_API_BASE_URL || 'https://speedtest-backend.onrender.com';
+      return ''; // Use relative URLs
     }
     // For Cloudflare Pages, use the current origin
     return window.location.origin;
@@ -48,9 +47,9 @@ const getWebSocketUrl = (): string => {
   
   // In production, handle different platforms
   if (import.meta.env.PROD) {
-    // For Render deployment, WebSocket is on the backend service
-    if (window.location.hostname.includes('onrender.com') || baseUrl.includes('onrender.com')) {
-      return baseUrl.replace('https://', 'wss://').replace('http://', 'ws://');
+    // For Render deployment, WebSocket is on the same domain
+    if (window.location.hostname.includes('onrender.com') || baseUrl === '') {
+      return window.location.origin.replace('https://', 'wss://').replace('http://', 'ws://');
     }
     // For Cloudflare Pages, use functions/websocket
     return baseUrl.replace('https://', 'wss://').replace('http://', 'ws://') + '/functions/websocket';

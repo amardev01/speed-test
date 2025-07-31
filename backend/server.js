@@ -238,6 +238,37 @@ if (cluster.isPrimary && ENABLE_CLUSTER) {
     res.setHeader('Surrogate-Control', 'no-store');
     next();
   });
+
+  // Serve static frontend files
+  const publicPath = path.join(__dirname, 'public');
+  if (fs.existsSync(publicPath)) {
+    app.use(express.static(publicPath, {
+      maxAge: '1h',
+      etag: true,
+      lastModified: true
+    }));
+    
+    // Handle SPA routing - serve index.html for all non-API routes
+    app.get('*', (req, res, next) => {
+      // Skip API routes
+      if (req.path.startsWith('/ping') || 
+          req.path.startsWith('/download') || 
+          req.path.startsWith('/upload') || 
+          req.path.startsWith('/status') || 
+          req.path.startsWith('/health') ||
+          req.path.startsWith('/websocket')) {
+        return next();
+      }
+      
+      // Serve index.html for all other routes (SPA routing)
+      const indexPath = path.join(publicPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        next();
+      }
+    });
+  }
   
   // Apply rate limiting to all routes except download/upload
   app.use((req, res, next) => {

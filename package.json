@@ -5,7 +5,8 @@
   "scripts": {
     "build": "cd project && npm ci && npm run build",
     "build:backend": "cd backend && npm ci --only=production",
-    "build:all": "npm run build:backend && npm run build",
+    "build:all": "npm run build:backend && npm run build && npm run copy-frontend",
+    "copy-frontend": "node scripts/copy-frontend.js",
     "build:cf": "cd project && npm install && npm run build && cd .. && cp -r functions project/dist/functions",
     "start": "cd backend && npm start",
     "vercel-build": "cd project && npm ci && npm run build",
