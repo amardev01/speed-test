@@ -3,8 +3,17 @@ import { WorkerMessageType, WorkerMessage } from './speedTestWorker';
 
 class SpeedTestEngine {
   private servers: TestServer[] = [
-    { id: '1', name: 'Local Server', location: 'Custom Backend', host: 'http://localhost:3000', distance: 0 },
+    // Cloudflare Edge Servers for global coverage
+    { id: 'cf-us-east', name: 'US East', location: 'New York, USA', host: 'https://speed-test-us-east.example.com', distance: 0 },
+    { id: 'cf-us-west', name: 'US West', location: 'San Francisco, USA', host: 'https://speed-test-us-west.example.com', distance: 0 },
+    { id: 'cf-eu-west', name: 'EU West', location: 'London, UK', host: 'https://speed-test-eu-west.example.com', distance: 0 },
+    { id: 'cf-eu-central', name: 'EU Central', location: 'Frankfurt, Germany', host: 'https://speed-test-eu-central.example.com', distance: 0 },
+    { id: 'cf-asia-pacific', name: 'Asia Pacific', location: 'Singapore', host: 'https://speed-test-asia-pacific.example.com', distance: 0 },
+    { id: 'cf-auto', name: 'Auto (Cloudflare)', location: 'Nearest Edge', host: window.location.origin, distance: 0 },
+    { id: 'local', name: 'Local Server', location: 'Custom Backend', host: 'http://localhost:3000', distance: 0 },
   ];
+
+  private selectedServerId: string = 'cf-auto';
 
   private onProgress?: (progress: TestProgress) => void;
   private onGraphUpdate?: (data: GraphData[]) => void;
@@ -15,10 +24,12 @@ class SpeedTestEngine {
   constructor(
     onProgress?: (progress: TestProgress) => void,
     onGraphUpdate?: (data: GraphData[]) => void,
-    config?: TestConfig
+    config?: TestConfig,
+    selectedServerId?: string
   ) {
     this.onProgress = onProgress;
     this.onGraphUpdate = onGraphUpdate;
+    this.selectedServerId = selectedServerId || 'cf-auto';
     this.config = config || {
       duration: 10,
       parallelConnections: 4,
@@ -130,12 +141,64 @@ class SpeedTestEngine {
     });
   }
 
+  async selectBestServer(): Promise<TestServer> {
+    if (this.selectedServerId === 'cf-auto') {
+      return await this.findNearestServer();
+    }
+    
+    const selectedServer = this.servers.find(s => s.id === this.selectedServerId);
+    return selectedServer || this.servers.find(s => s.id === 'cf-auto')!;
+  }
+
+  private async findNearestServer(): Promise<TestServer> {
+    try {
+      // Use Cloudflare's automatic edge selection by default
+      const autoServer = this.servers.find(s => s.id === 'cf-auto');
+      if (autoServer) {
+        return autoServer;
+      }
+
+      // Fallback: Test latency to multiple servers
+      const testPromises = this.servers
+        .filter(s => s.id !== 'cf-auto' && s.id !== 'local')
+        .map(async (server) => {
+          try {
+            const startTime = performance.now();
+            const response = await fetch(`${server.host}/ping`, {
+              method: 'GET',
+              cache: 'no-cache',
+              signal: AbortSignal.timeout(5000)
+            });
+            const latency = performance.now() - startTime;
+            return { ...server, distance: latency, latency };
+          } catch {
+            return { ...server, distance: 9999, latency: 9999 };
+          }
+        });
+
+      const serversWithLatency = await Promise.all(testPromises);
+      return serversWithLatency.reduce((best, current) => 
+        current.latency! < best.latency! ? current : best
+      );
+    } catch (error) {
+      console.error('Error finding nearest server:', error);
+      // Fallback to auto server
+      return this.servers.find(s => s.id === 'cf-auto') || this.servers[0];
+    }
+  }
+
+  getAvailableServers(): TestServer[] {
+    return this.servers;
+  }
+
+  setSelectedServer(serverId: string) {
+    this.selectedServerId = serverId;
+  }
+
   abort() {
     this.sendMessageToWorker(WorkerMessageType.ABORT);
   }
 
-
-  
   // Clean up resources when the engine is no longer needed
   dispose() {
     if (this.worker) {

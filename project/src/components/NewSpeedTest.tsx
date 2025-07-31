@@ -30,8 +30,9 @@ const NewSpeedTest: React.FC<NewSpeedTestProps> = ({ onTestComplete }) => {
   
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const [shouldRedirect, setShouldRedirect] = useState(false);
-  const [selectedServer, setSelectedServer] = useState<string>('auto');
+  const [selectedServer, setSelectedServer] = useState<string>('cf-auto');
   const [selectedProtocol, setSelectedProtocol] = useState<TestProtocol>(TestProtocol.XHR);
+  const [availableServers, setAvailableServers] = useState<any[]>([]);
   
 
   const handleProgressUpdate = useCallback((progress: TestProgressType) => {
@@ -49,13 +50,20 @@ const NewSpeedTest: React.FC<NewSpeedTestProps> = ({ onTestComplete }) => {
     });
 
     try {
+      console.log('Starting speed test with server:', selectedServer);
+      
       const testEngine = new SpeedTestEngine(handleProgressUpdate, undefined, {
         duration: 10,
         parallelConnections: 4,
         enableBufferbloat: true,
         enableStressTest: false,
         protocol: selectedProtocol
-      });
+      }, selectedServer);
+      
+      // Select the best server before starting the test
+      const bestServer = await testEngine.selectBestServer();
+      console.log('Selected server:', bestServer.name, 'at', bestServer.location);
+      toast.success(`Connected to ${bestServer.name} - ${bestServer.location}`);
       
       const result = await testEngine.runSpeedTest();
       setTestResult(result);
@@ -71,10 +79,24 @@ const NewSpeedTest: React.FC<NewSpeedTestProps> = ({ onTestComplete }) => {
       
       // Set flag to redirect to results page
       setShouldRedirect(true);
+      
+      // Clean up the engine
+      testEngine.dispose();
     } catch (error) {
       console.error('Speed test failed:', error);
-      toast.error('Test failed. Retrying...');
-      setTimeout(() => startTest(), 2000);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error(`Test failed: ${errorMessage}. Retrying...`);
+      
+      // Reset progress on error
+      setTestProgress({
+        phase: 'idle',
+        progress: 0,
+        currentSpeed: 0,
+        elapsedTime: 0
+      });
+      
+      // Retry after a delay
+      setTimeout(() => startTest(), 3000);
     } finally {
       setIsTestRunning(false);
     }
@@ -95,15 +117,23 @@ const NewSpeedTest: React.FC<NewSpeedTestProps> = ({ onTestComplete }) => {
     }, 500);
   };
 
+  // Load available servers on component mount
+  useEffect(() => {
+    const tempEngine = new SpeedTestEngine();
+    setAvailableServers(tempEngine.getAvailableServers());
+    tempEngine.dispose();
+  }, []);
+
   // Auto-start test when component mounts
   useEffect(() => {
-    if (!autoStarted && !isTestRunning && !testResult) {
+    if (!autoStarted && !isTestRunning && !testResult && availableServers.length > 0) {
+      console.log('Auto-starting speed test...');
       setAutoStarted(true);
       setTimeout(() => {
         startTest();
-      }, 1000);
+      }, 1500); // Slightly longer delay to ensure everything is loaded
     }
-  }, [autoStarted, isTestRunning, testResult]);
+  }, [autoStarted, isTestRunning, testResult, availableServers]);
 
   // Redirect to results page after test completion
   useEffect(() => {
@@ -192,8 +222,11 @@ const NewSpeedTest: React.FC<NewSpeedTestProps> = ({ onTestComplete }) => {
                 onChange={(e) => setSelectedServer(e.target.value)}
                 disabled={isTestRunning}
               >
-                <option value="auto">Auto (Recommended)</option>
-                <option value="local">Local Server</option>
+                {availableServers.map((server) => (
+                  <option key={server.id} value={server.id}>
+                    {server.name} {server.id === 'cf-auto' ? '(Recommended)' : `- ${server.location}`}
+                  </option>
+                ))}
               </select>
             </div>
             

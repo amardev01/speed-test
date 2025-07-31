@@ -2,14 +2,15 @@ name = "speed-test-app"
 compatibility_date = "2024-01-15"
 compatibility_flags = ["nodejs_compat"]
 
+# Pages configuration
+pages_build_output_dir = "project/dist"
+pages_functions_dir = "functions"
+
 [env.production]
 name = "speed-test-app"
 
 [env.preview]
 name = "speed-test-app-preview"
-
-# Pages configuration
-pages_build_output_dir = "project/dist"
 
 # Environment variables
 [vars]

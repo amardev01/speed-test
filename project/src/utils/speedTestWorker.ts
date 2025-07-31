@@ -20,9 +20,16 @@ export interface WorkerMessage {
 // Import server configuration
 import serverConfig from '../config/serverConfig';
 
-// Default servers list
+// Default servers list with Cloudflare edge servers
 const servers: TestServer[] = [
-  { id: '1', name: 'Local Server', location: 'Custom Backend', host: 'http://localhost:3000', distance: 0 },
+  // Cloudflare Edge Servers for global coverage
+  { id: 'cf-us-east', name: 'US East', location: 'New York, USA', host: 'https://speed-test-us-east.example.com', distance: 0 },
+  { id: 'cf-us-west', name: 'US West', location: 'San Francisco, USA', host: 'https://speed-test-us-west.example.com', distance: 0 },
+  { id: 'cf-eu-west', name: 'EU West', location: 'London, UK', host: 'https://speed-test-eu-west.example.com', distance: 0 },
+  { id: 'cf-eu-central', name: 'EU Central', location: 'Frankfurt, Germany', host: 'https://speed-test-eu-central.example.com', distance: 0 },
+  { id: 'cf-asia-pacific', name: 'Asia Pacific', location: 'Singapore', host: 'https://speed-test-asia-pacific.example.com', distance: 0 },
+  { id: 'cf-auto', name: 'Auto (Cloudflare)', location: 'Nearest Edge', host: typeof window !== 'undefined' ? window.location.origin : 'https://speedtest.example.com', distance: 0 },
+  { id: 'local', name: 'Local Server', location: 'Custom Backend', host: 'http://localhost:3000', distance: 0 },
 ];
 
 // Worker state
@@ -315,20 +322,48 @@ async function runWebSocketSpeedTest() {
 }
 
 async function findBestServer(): Promise<TestServer> {
-  const testServers = servers.slice(0, 2);
-  const serverPromises = testServers.map(async (server) => {
-    try {
-      const latency = await quickPing(server.host);
-      return { ...server, latency, distance: latency };
-    } catch {
-      return { ...server, latency: 999, distance: 999 };
+  try {
+    // First, try to use Cloudflare's automatic edge selection
+    const autoServer = servers.find(s => s.id === 'cf-auto');
+    if (autoServer) {
+      // Test if the auto server is reachable
+      try {
+        const latency = await quickPing(autoServer.host);
+        if (latency < 1000) { // If latency is reasonable, use auto server
+          return { ...autoServer, latency, distance: latency };
+        }
+      } catch {
+        // Auto server failed, continue to manual selection
+      }
     }
-  });
 
-  const serversWithLatency = await Promise.all(serverPromises);
-  return serversWithLatency.reduce((best, current) => 
-    current.latency! < best.latency! ? current : best
-  );
+    // Fallback: Test multiple servers and find the best one
+    const testServers = servers.filter(s => s.id !== 'cf-auto');
+    const serverPromises = testServers.map(async (server) => {
+      try {
+        const latency = await quickPing(server.host);
+        return { ...server, latency, distance: latency };
+      } catch {
+        return { ...server, latency: 9999, distance: 9999 };
+      }
+    });
+
+    const serversWithLatency = await Promise.all(serverPromises);
+    const bestServer = serversWithLatency.reduce((best, current) => 
+      current.latency! < best.latency! ? current : best
+    );
+
+    // If no server is reachable, fallback to auto server
+    if (bestServer.latency! > 5000) {
+      return autoServer || servers[0];
+    }
+
+    return bestServer;
+  } catch (error) {
+    console.error('Error finding best server:', error);
+    // Ultimate fallback
+    return servers.find(s => s.id === 'cf-auto') || servers[0];
+  }
 }
 
 async function quickPing(url: string): Promise<number> {
