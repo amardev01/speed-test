@@ -6,7 +6,7 @@
     "build": "cd project && npm install && npm run build",
     "build:backend": "cd backend && npm ci --only=production",
     "build:all": "npm run build:backend && npm run build",
-    "build:cf": "cd project && npm install && npm run build && cd .. && xcopy functions project\\dist\\functions /E /I /Y",
+    "build:cf": "cd project && npm install && npm run build && cd .. && cp -r functions project/dist/functions",
     "start": "cd backend && npm start",
     "vercel-build": "cd project && npm ci && npm run build",
     "cf:deploy": "wrangler pages deploy project/dist",
@@ -23,7 +23,7 @@
     "react-hot-toast": "^2.5.2"
   },
   "devDependencies": {
-    "wrangler": "^3.0.0"
+    "wrangler": "^4.26.1"
   },
   "engines": {
     "node": ">=18.0.0"
