@@ -20,15 +20,19 @@ export interface WorkerMessage {
 // Import server configuration
 import serverConfig from '../config/serverConfig';
 
-// Default servers list with Cloudflare edge servers
+// Simplified servers list - Cloudflare automatically routes to nearest edge
+function getCurrentOrigin(): string {
+  // Safe way to get current origin that works in all environments
+  if (typeof self !== 'undefined' && self.location) {
+    return self.location.origin;
+  }
+  // Fallback for worker environments
+  return 'https://speedtest.pages.dev';
+}
+
 const servers: TestServer[] = [
-  // Cloudflare Edge Servers for global coverage
-  { id: 'cf-us-east', name: 'US East', location: 'New York, USA', host: 'https://speed-test-us-east.example.com', distance: 0 },
-  { id: 'cf-us-west', name: 'US West', location: 'San Francisco, USA', host: 'https://speed-test-us-west.example.com', distance: 0 },
-  { id: 'cf-eu-west', name: 'EU West', location: 'London, UK', host: 'https://speed-test-eu-west.example.com', distance: 0 },
-  { id: 'cf-eu-central', name: 'EU Central', location: 'Frankfurt, Germany', host: 'https://speed-test-eu-central.example.com', distance: 0 },
-  { id: 'cf-asia-pacific', name: 'Asia Pacific', location: 'Singapore', host: 'https://speed-test-asia-pacific.example.com', distance: 0 },
-  { id: 'cf-auto', name: 'Auto (Cloudflare)', location: 'Nearest Edge', host: typeof window !== 'undefined' ? window.location.origin : 'https://speedtest.example.com', distance: 0 },
+  // Use current origin since Cloudflare automatically routes to nearest edge
+  { id: 'cf-auto', name: 'Auto (Cloudflare)', location: 'Nearest Edge', host: getCurrentOrigin(), distance: 0 },
   { id: 'local', name: 'Local Server', location: 'Custom Backend', host: 'http://localhost:3000', distance: 0 },
 ];
 
