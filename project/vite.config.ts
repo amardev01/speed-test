@@ -13,11 +13,21 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  // Define global variables to fix crypto issues
+  define: {
+    global: 'globalThis',
+  },
+  // Worker configuration to fix crypto.hash issues
+  worker: {
+    format: 'iife',
+    plugins: []
+  },
   // Ensure build doesn't hang by setting explicit timeouts
   build: {
     // Set a timeout for the build process (in milliseconds)
     // This ensures the build doesn't hang indefinitely
     chunkSizeWarningLimit: 1000,
+    target: 'es2020',
     rollupOptions: {
       output: {
         manualChunks: {

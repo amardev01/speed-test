@@ -57,7 +57,7 @@ class SpeedTestEngine {
     }
 
     // Create a new worker
-    this.worker = new Worker(new URL('./speedTestWorker.ts', import.meta.url), { type: 'module' });
+    this.worker = new Worker(new URL('./speedTestWorker.ts', import.meta.url));
     
     // Set up message handler
     this.worker.onmessage = this.handleWorkerMessage.bind(this);

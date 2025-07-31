@@ -1,7 +1,7 @@
 # Multi-stage build for speed test application
 
 # Stage 1: Build the React frontend
-FROM node:18-alpine AS frontend-build
+FROM node:20-alpine AS frontend-build
 WORKDIR /app/frontend
 
 # Copy frontend package.json and install dependencies
@@ -15,7 +15,7 @@ ENV NODE_ENV=production
 RUN npm run build || (echo "Build failed" && exit 1)
 
 # Stage 2: Build the Node.js backend
-FROM node:18-alpine AS backend-build
+FROM node:20-alpine AS backend-build
 WORKDIR /app/backend
 
 # Copy backend package.json and install dependencies
@@ -26,7 +26,7 @@ RUN npm ci
 COPY backend/ ./
 
 # Stage 3: Production image
-FROM node:18-alpine
+FROM node:20-alpine
 WORKDIR /app
 
 # Copy built backend from backend-build stage
