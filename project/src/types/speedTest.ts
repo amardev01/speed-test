@@ -67,6 +67,10 @@ export interface TestConfig {
   enableStressTest: boolean;
   enableAutoProtocolOverhead?: boolean;
   protocol?: TestProtocol;
+  // Advanced accuracy settings
+  enableDynamicGracePeriod?: boolean;
+  tcpGracePeriod?: number; // Grace period in seconds to exclude TCP slow-start
+  protocolOverheadFactor?: number; // Factor to compensate for HTTP/TCP/IP overhead
 }
 
 export interface NetworkStabilityData {

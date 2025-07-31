@@ -17,16 +17,8 @@ export interface WorkerMessage {
   payload?: any;
 }
 
-// Server configuration
-const serverConfig = {
-  baseUrl: 'http://localhost:3000',
-  endpoints: {
-    download: '/download',
-    upload: '/upload',
-    ping: '/ping'
-  },
-  wsUrl: 'ws://localhost:3000' // WebSocket URL
-};
+// Import server configuration
+import serverConfig from '../config/serverConfig';
 
 // Default servers list
 const servers: TestServer[] = [

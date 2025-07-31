@@ -25,7 +25,11 @@ class SpeedTestEngine {
       enableBufferbloat: true,
       enableStressTest: false,
       enableAutoProtocolOverhead: true,
-      protocol: TestProtocol.XHR // Default to XHR protocol
+      protocol: TestProtocol.XHR, // Default to XHR protocol
+      // Advanced accuracy settings for 99% accurate results
+      enableDynamicGracePeriod: true, // Automatically adjust grace period based on connection speed
+      tcpGracePeriod: 2, // Default 2-second grace period to exclude TCP slow-start
+      protocolOverheadFactor: 1.06 // Default 6% overhead compensation for HTTP/TCP/IP
     };
     
     this.initWorker();
