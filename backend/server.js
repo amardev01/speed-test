@@ -163,6 +163,9 @@ if (cluster.isPrimary && ENABLE_CLUSTER) {
   // Worker process - actual server code
   const app = express();
   
+  // Configure trust proxy for Render deployment
+  app.set('trust proxy', 1); // Trust first proxy (Render's load balancer)
+  
   // Performance optimization: increase default socket timeout
   const keepAliveTimeout = parseInt(process.env.KEEP_ALIVE_TIMEOUT) || 65000; // Default: 65 seconds
   const headersTimeout = parseInt(process.env.HEADERS_TIMEOUT) || 66000; // Default: 66 seconds
@@ -178,7 +181,12 @@ if (cluster.isPrimary && ENABLE_CLUSTER) {
     max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500, // Default: 500 requests per window per IP
     standardHeaders: true,
     legacyHeaders: false,
-    message: 'Too many requests, please try again later.'
+    message: 'Too many requests, please try again later.',
+    // Disable validation checks that cause issues in proxy environments
+    validate: {
+      xForwardedForHeader: false,
+      trustProxy: false
+    }
   };
   
   const apiLimiter = rateLimit(rateLimitConfig);
