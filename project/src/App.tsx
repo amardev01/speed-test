@@ -1,8 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import Header from './components/Header';
-import Footer from './components/Footer';
 import NewHeader from './components/NewHeader';
 import NewFooter from './components/NewFooter';
 import ModernSpeedTest from './components/ModernSpeedTest';
@@ -21,7 +19,8 @@ const App: React.FC = () => {
         
         <main className="flex-grow">
           <Routes>
-            <Route path="/" element={<TestComponent />} />
+            <Route path="/" element={<NewSpeedTest />} />
+            <Route path="/test" element={<TestComponent />} />
             <Route path="/results/:resultId" element={<NewResultsPage />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/contact" element={<ContactPage />} />

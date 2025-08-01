@@ -9,6 +9,7 @@ interface ServerConfig {
     download: string;
     upload: string;
     ping: string;
+    getIP: string;
     status: string;
     health: string;
     websocket: string;
