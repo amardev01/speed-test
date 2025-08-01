@@ -1,11 +1,10 @@
 services:
-  # Backend Service
+  # Unified Speed Test Application (Backend + Frontend)
   - type: web
-    name: speedtest-backend
-    env: node
+    name: sjpeedtestaplicationdp
+    env: docker
     plan: free
-    buildCommand: npm run build:backend
-    startCommand: node backend/start.js
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: NODE_ENV
         value: production
@@ -21,18 +20,3 @@ services:
         value: "65000"
       - key: HEADERS_TIMEOUT
         value: "66000"
-
-  # Frontend Service
-  - type: web
-    name: speedtest-frontend
-    env: node
-    plan: free
-    buildCommand: cd project && npm ci && npm run build
-    startCommand: cd project && npm start
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 10000
-      - key: VITE_API_BASE_URL
-        value: https://speedtest-backend.onrender.com

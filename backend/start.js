@@ -1,7 +1,6 @@
 // Simple start script for the backend server
 // This avoids using shell operators like && which may not work in all environments
 
-import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
@@ -13,4 +12,4 @@ process.chdir(__dirname);
 
 // Start the server
 console.log('Starting backend server...');
-require('./server.js');
+import('./server.js');
