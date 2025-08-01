@@ -21,12 +21,10 @@ jobs:
 
     - name: Install dependencies
       run: |
-        npm ci
-        # Backend removed - will be updated when new backend is integrated
-        cd ../project && npm ci
+        cd project && npm ci
 
     - name: Build
-      run: npm run build:all
+      run: cd project && npm run build
 
     - name: Run tests
       run: |
