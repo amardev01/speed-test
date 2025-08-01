@@ -9,6 +9,7 @@
     "copy-frontend": "node scripts/copy-frontend.js",
     "build:cf": "cd project && npm install && npm run build && cd .. && cp -r functions project/dist/functions",
     "start": "cd backend && npm start",
+    "start:backend": "node backend/start.js",
     "vercel-build": "cd project && npm ci && npm run build",
     "cf:deploy": "wrangler pages deploy project/dist",
     "cf:dev": "wrangler pages dev project/dist --compatibility-date=2024-01-15 --compatibility-flags=nodejs_compat",
