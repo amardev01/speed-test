@@ -32,18 +32,15 @@ WORKDIR /app
 # Copy built backend from backend-build stage
 COPY --from=backend-build /app/backend ./backend
 
-# Copy built frontend from frontend-build stage
-COPY --from=frontend-build /app/frontend/dist ./frontend/dist
-
-# Install serve to serve the frontend
-RUN npm install -g serve
+# Copy built frontend from frontend-build stage to backend's public directory
+COPY --from=frontend-build /app/frontend/dist ./backend/public
 
 # Copy the startup script
 COPY docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
 
-# Expose ports for backend and frontend
-EXPOSE 3000 5000
+# Expose port for the unified server
+EXPOSE 10000
 
-# Start both services
+# Start the backend server (which now serves frontend too)
 ENTRYPOINT ["/docker-entrypoint.sh"]

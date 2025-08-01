@@ -241,8 +241,22 @@ if (cluster.isPrimary && ENABLE_CLUSTER) {
 
   // Serve static frontend files
   const publicPath = path.join(__dirname, 'public');
+  const frontendDistPath = path.join(__dirname, '..', 'frontend', 'dist');
+  
+  // Check for frontend build files in multiple possible locations
+  let staticPath = null;
   if (fs.existsSync(publicPath)) {
-    app.use(express.static(publicPath, {
+    staticPath = publicPath;
+    console.log(`Serving static files from: ${publicPath}`);
+  } else if (fs.existsSync(frontendDistPath)) {
+    staticPath = frontendDistPath;
+    console.log(`Serving static files from: ${frontendDistPath}`);
+  } else {
+    console.log('No frontend build files found. API-only mode.');
+  }
+  
+  if (staticPath) {
+    app.use(express.static(staticPath, {
       maxAge: '1h',
       etag: true,
       lastModified: true
@@ -261,12 +275,28 @@ if (cluster.isPrimary && ENABLE_CLUSTER) {
       }
       
       // Serve index.html for all other routes (SPA routing)
-      const indexPath = path.join(publicPath, 'index.html');
+      const indexPath = path.join(staticPath, 'index.html');
       if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
       } else {
-        next();
+        res.status(404).json({ error: 'Frontend not found', message: 'This is a backend API server. Frontend files are not available.' });
       }
+    });
+  } else {
+    // If no frontend files, provide a basic response for root path
+    app.get('/', (req, res) => {
+      res.json({
+        message: 'Speed Test API Server',
+        status: 'running',
+        endpoints: {
+          ping: '/ping',
+          download: '/download',
+          upload: '/upload',
+          status: '/status',
+          health: '/health'
+        },
+        note: 'This is a backend API server. Frontend files are served separately.'
+      });
     });
   }
   
