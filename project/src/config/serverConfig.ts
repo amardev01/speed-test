@@ -53,10 +53,10 @@ const serverConfig: ServerConfig = {
   baseUrl: getBaseUrl(),
   wsUrl: getWebSocketUrl(),
   endpoints: {
-    download: '/backend/garbage.php',
-    upload: '/backend/empty.php',
-    ping: '/backend/empty.php',
-    getIP: '/backend/getIP.php',
+    download: 'garbage.php',
+    upload: 'empty.php',
+    ping: 'empty.php',
+    getIP: 'getIP.php',
     status: '/status',
     health: '/health',
     websocket: '/websocket'
