@@ -25,7 +25,7 @@ jobs:
     - name: Run npm audit
       run: |
         npm audit --production
-        cd backend && npm audit --production
+        # Backend removed - will be updated when new backend is integrated
         cd ../project && npm audit --production
       continue-on-error: true
 

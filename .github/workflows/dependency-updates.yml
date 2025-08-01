@@ -28,9 +28,7 @@ jobs:
         npm update
         git add package.json package-lock.json
 
-    - name: Update backend dependencies
-      run: |
-        cd backend
+    # Backend dependency updates removed - will be updated when new backend is integrated
         npm update
         git add package.json package-lock.json
 

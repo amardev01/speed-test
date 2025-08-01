@@ -1,0 +1,29 @@
+{
+  "name": "speedtest-librespeed",
+  "version": "1.0.0",
+  "description": "Speed Test Application with LibreSpeed Backend",
+  "main": "server.php",
+  "scripts": {
+    "build": "cd project && npm install && npm run build",
+    "start": "php -S 0.0.0.0:$PORT server.php",
+    "dev": "php -S localhost:8080 server.php"
+  },
+  "engines": {
+    "php": ">=8.0",
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "speedtest",
+    "librespeed",
+    "network",
+    "performance",
+    "php",
+    "react"
+  ],
+  "author": "Speed Test Application",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/speedtest-app.git"
+  }
+}

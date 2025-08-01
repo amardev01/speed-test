@@ -22,18 +22,13 @@ const getBaseUrl = (): string => {
     return import.meta.env.VITE_API_BASE_URL;
   }
   
-  // In production, check if we're on Render or Cloudflare
-  if (import.meta.env.PROD) {
-    // For Render deployment, use relative URLs since frontend and backend are served together
-    if (window.location.hostname.includes('onrender.com')) {
-      return ''; // Use relative URLs
-    }
-    // For Cloudflare Pages, use the current origin
+  // In production, use current origin
+  if (import.meta.env.PROD && typeof window !== 'undefined') {
     return window.location.origin;
   }
   
-  // Development fallback
-  return 'http://localhost:3000';
+  // LibreSpeed backend URL for development
+  return 'http://localhost:8080';
 };
 
 // Determine WebSocket URL based on environment
@@ -43,29 +38,24 @@ const getWebSocketUrl = (): string => {
     return import.meta.env.VITE_WS_URL;
   }
   
-  const baseUrl = getBaseUrl();
-  
-  // In production, handle different platforms
-  if (import.meta.env.PROD) {
-    // For Render deployment, WebSocket is on the same domain
-    if (window.location.hostname.includes('onrender.com') || baseUrl === '') {
-      return window.location.origin.replace('https://', 'wss://').replace('http://', 'ws://');
-    }
-    // For Cloudflare Pages, use functions/websocket
-    return baseUrl.replace('https://', 'wss://').replace('http://', 'ws://') + '/functions/websocket';
+  // In production, use current origin with wss protocol
+  if (import.meta.env.PROD && typeof window !== 'undefined') {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${window.location.host}`;
   }
   
-  // Development fallback
-  return 'ws://localhost:3000';
+  // LibreSpeed backend WebSocket URL for development
+  return 'ws://localhost:8080';
 };
 
 const serverConfig: ServerConfig = {
   baseUrl: getBaseUrl(),
   wsUrl: getWebSocketUrl(),
   endpoints: {
-    download: '/download',
-    upload: '/upload',
-    ping: '/ping',
+    download: '/backend/garbage.php',
+    upload: '/backend/empty.php',
+    ping: '/backend/empty.php',
+    getIP: '/backend/getIP.php',
     status: '/status',
     health: '/health',
     websocket: '/websocket'

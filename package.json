@@ -1,19 +1,11 @@
 {
   "name": "speedtest-app",
   "version": "2.0.0",
-  "description": "Speed Test Application with React frontend and Cloudflare Pages Functions backend",
+  "description": "Speed Test Application with React frontend",
   "scripts": {
     "build": "cd project && npm ci && npm run build",
-    "build:backend": "cd backend && npm ci --only=production",
-    "build:all": "npm run build:backend && npm run build && npm run copy-frontend",
-    "copy-frontend": "node scripts/copy-frontend.js",
-    "build:cf": "cd project && npm install && npm run build && cd .. && cp -r functions project/dist/functions",
-    "start": "cd backend && npm start",
-    "start:backend": "node backend/start.js",
-    "vercel-build": "cd project && npm ci && npm run build",
-    "cf:deploy": "wrangler pages deploy project/dist",
-    "cf:dev": "wrangler pages dev project/dist --compatibility-date=2024-01-15 --compatibility-flags=nodejs_compat",
-    "functions:build": "wrangler pages functions build"
+    "dev": "cd project && npm run dev",
+    "start": "cd project && npm run preview"
   },
   "dependencies": {
     "framer-motion": "^12.16.0",
@@ -23,9 +15,6 @@
     "lucide-react": "^0.513.0",
     "qrcode": "^1.5.4",
     "react-hot-toast": "^2.5.2"
-  },
-  "devDependencies": {
-    "wrangler": "^4.26.1"
   },
   "engines": {
     "node": ">=18.0.0"

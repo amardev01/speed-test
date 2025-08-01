@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page</title>
+</head>
+<body>
+    <h1>Test Page Working</h1>
+    <p>If you can see this, the server is working correctly.</p>
+    <script>
+        console.log('JavaScript is working');
+        fetch('/librespeed.js')
+            .then(response => {
+                console.log('LibreSpeed.js status:', response.status);
+                return response.text();
+            })
+            .then(text => {
+                console.log('LibreSpeed.js loaded, length:', text.length);
+            })
+            .catch(error => {
+                console.error('Error loading LibreSpeed.js:', error);
+            });
+    </script>
+</body>
+</html>

@@ -7,6 +7,7 @@ import NewHeader from './components/NewHeader';
 import NewFooter from './components/NewFooter';
 import ModernSpeedTest from './components/ModernSpeedTest';
 import NewSpeedTest from './components/NewSpeedTest';
+import TestComponent from './components/TestComponent';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import ContactPage from './components/ContactPage';
 import ResultsPage from './components/ResultsPage';
@@ -20,7 +21,7 @@ const App: React.FC = () => {
         
         <main className="flex-grow">
           <Routes>
-            <Route path="/" element={<NewSpeedTest />} />
+            <Route path="/" element={<TestComponent />} />
             <Route path="/results/:resultId" element={<NewResultsPage />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/contact" element={<ContactPage />} />

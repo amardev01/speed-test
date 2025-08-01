@@ -30,7 +30,7 @@ jobs:
     - name: Install dependencies
       run: |
         npm ci
-        cd backend && npm ci
+        # Backend removed - will be updated when new backend is integrated
         cd ../project && npm ci
 
     - name: Build application
@@ -93,7 +93,7 @@ jobs:
     - name: Install dependencies
       run: |
         npm ci
-        cd backend && npm ci
+        # Backend removed - will be updated when new backend is integrated
         cd ../project && npm ci
 
     - name: Build application
@@ -104,10 +104,7 @@ jobs:
         cd project
         zip -r ../frontend-${{ github.event.inputs.version || github.ref_name }}.zip dist
 
-    - name: Create backend artifact
-      run: |
-        cd backend
-        zip -r ../backend-${{ github.event.inputs.version || github.ref_name }}.zip . -x "node_modules/*"
+    # Backend artifact creation removed - will be updated when new backend is integrated
 
     - name: Upload frontend artifact
       uses: actions/upload-artifact@v3
@@ -115,11 +112,7 @@ jobs:
         name: frontend-${{ github.event.inputs.version || github.ref_name }}
         path: frontend-${{ github.event.inputs.version || github.ref_name }}.zip
 
-    - name: Upload backend artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: backend-${{ github.event.inputs.version || github.ref_name }}
-        path: backend-${{ github.event.inputs.version || github.ref_name }}.zip
+    # Backend artifact upload removed - will be updated when new backend is integrated
 
   docker-release:
     name: Build and Push Docker Image

@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'backend/**'
+      # Backend removed - will be updated when new backend is integrated
       - 'project/src/**'
       - '**.md'
   workflow_dispatch:
@@ -23,15 +23,7 @@ jobs:
         node-version: '18'
         cache: 'npm'
 
-    - name: Install dependencies
-      run: |
-        cd backend
-        npm ci
-        npm install --save-dev jsdoc swagger-jsdoc swagger-ui-express
-
-    - name: Generate API documentation
-      run: |
-        cd backend
+      # Backend documentation generation removed - will be updated when new backend is integrated
         cat > jsdoc.json << 'EOL'
         {
           "source": {
@@ -56,7 +48,7 @@ jobs:
 
     - name: Generate Swagger documentation
       run: |
-        cd backend
+        # Backend removed - will be updated when new backend is integrated
         cat > swagger.js << 'EOL'
         const swaggerJsdoc = require('swagger-jsdoc');
         const fs = require('fs');
@@ -71,12 +63,12 @@ jobs:
             },
             servers: [
               {
-                url: 'http://localhost:3000',
-                description: 'Development server',
+                url: 'http://localhost:8080',
+                description: 'Placeholder server',
               },
             ],
           },
-          apis: ['./server.js', './routes/*.js'],
+          apis: ['./placeholder.js'],
         };
 
         const specs = swaggerJsdoc(options);
@@ -90,7 +82,7 @@ jobs:
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./backend/docs
+        publish_dir: ./project/docs
         destination_dir: api-docs
 
   frontend-docs:

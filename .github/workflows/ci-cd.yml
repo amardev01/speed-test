@@ -22,7 +22,7 @@ jobs:
     - name: Install dependencies
       run: |
         npm ci
-        cd backend && npm ci
+        # Backend removed - will be updated when new backend is integrated
         cd ../project && npm ci
 
     - name: Build

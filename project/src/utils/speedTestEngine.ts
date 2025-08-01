@@ -1,14 +1,21 @@
 import { TestProgress, SpeedTestResult, TestServer, GraphData, TestConfig, TestProtocol } from '../types/speedTest';
 import { WorkerMessageType, WorkerMessage } from './speedTestWorker';
+import LibreSpeedEngine from './librespeedEngine';
 
 class SpeedTestEngine {
   private servers: TestServer[] = [
     // Use current origin for all Cloudflare edge servers since Cloudflare automatically routes to nearest edge
     { id: 'cf-auto', name: 'Auto (Cloudflare)', location: 'Nearest Edge', host: this.getCurrentOrigin(), distance: 0 },
-    { id: 'local', name: 'Local Server', location: 'Custom Backend', host: 'http://localhost:3000', distance: 0 },
+    { id: 'local', name: 'Local Server', location: 'LibreSpeed Backend', host: 'http://localhost:8080', distance: 0 },
   ];
 
+  private librespeedEngine: LibreSpeedEngine | null = null;
+
   private getCurrentOrigin(): string {
+    // In development, use LibreSpeed backend
+     if (import.meta.env.DEV) {
+       return 'http://localhost:8080';
+    }
     // Safe way to get current origin that works in all environments
     if (typeof window !== 'undefined' && window.location) {
       return window.location.origin;
@@ -33,7 +40,7 @@ class SpeedTestEngine {
   ) {
     this.onProgress = onProgress;
     this.onGraphUpdate = onGraphUpdate;
-    this.selectedServerId = selectedServerId || 'cf-auto';
+    this.selectedServerId = selectedServerId || 'local'; // Default to local LibreSpeed backend
     this.config = config || {
       duration: 10,
       parallelConnections: 4,
@@ -113,39 +120,59 @@ class SpeedTestEngine {
   }
 
   async runSpeedTest(): Promise<SpeedTestResult> {
-    return new Promise((resolve, reject) => {
-      if (!this.worker) {
-        reject(new Error('Worker not initialized'));
-        return;
+    // Use LibreSpeed engine for local backend, fallback to worker for others
+    if (this.selectedServerId === 'local') {
+      if (!this.librespeedEngine) {
+        this.librespeedEngine = new LibreSpeedEngine(
+          this.onProgress,
+          this.onGraphUpdate,
+          this.config
+        );
       }
-      
-      // Reset graph data
-      this.graphData = [];
-      
-      // Set up one-time listener for test completion
-      const completeListener = (event: MessageEvent<WorkerMessage>) => {
-        const { type, payload } = event.data;
-        
-        if (type === WorkerMessageType.TEST_COMPLETE) {
-          // Remove this listener once test is complete
-          this.worker?.removeEventListener('message', completeListener);
-          resolve(payload as SpeedTestResult);
-        } else if (type === WorkerMessageType.TEST_ERROR) {
-          // Remove this listener on error
-          this.worker?.removeEventListener('message', completeListener);
-          reject(new Error(payload.message));
+      return this.librespeedEngine.runSpeedTest();
+    } else {
+      // Use existing worker-based implementation for other servers
+      return new Promise((resolve, reject) => {
+        if (!this.worker) {
+          reject(new Error('Worker not initialized'));
+          return;
         }
-      };
-      
-      // Add the temporary listener for completion/error
-      this.worker.addEventListener('message', completeListener);
-      
-      // Start the test
-      this.sendMessageToWorker(WorkerMessageType.START_TEST);
-    });
+        
+        // Reset graph data
+        this.graphData = [];
+        
+        // Set up one-time listener for test completion
+        const completeListener = (event: MessageEvent<WorkerMessage>) => {
+          const { type, payload } = event.data;
+          
+          if (type === WorkerMessageType.TEST_COMPLETE) {
+            // Remove this listener once test is complete
+            this.worker?.removeEventListener('message', completeListener);
+            resolve(payload as SpeedTestResult);
+          } else if (type === WorkerMessageType.TEST_ERROR) {
+            // Remove this listener on error
+            this.worker?.removeEventListener('message', completeListener);
+            reject(new Error(payload.message));
+          }
+        };
+        
+        // Add the temporary listener for completion/error
+        this.worker.addEventListener('message', completeListener);
+        
+        // Start the test
+        this.sendMessageToWorker(WorkerMessageType.START_TEST);
+      });
+    }
   }
 
   async selectBestServer(): Promise<TestServer> {
+    // For LibreSpeed integration, prefer the local backend
+    const localServer = this.servers.find(s => s.id === 'local');
+    if (localServer) {
+      this.selectedServerId = 'local';
+      return localServer;
+    }
+    
     if (this.selectedServerId === 'cf-auto') {
       return await this.findNearestServer();
     }
@@ -200,11 +227,18 @@ class SpeedTestEngine {
   }
 
   abort() {
+    if (this.librespeedEngine) {
+      this.librespeedEngine.abort();
+    }
     this.sendMessageToWorker(WorkerMessageType.ABORT);
   }
 
   // Clean up resources when the engine is no longer needed
   dispose() {
+    if (this.librespeedEngine) {
+      this.librespeedEngine.dispose();
+      this.librespeedEngine = null;
+    }
     if (this.worker) {
       this.worker.terminate();
       this.worker = null;

@@ -5,16 +5,9 @@ component/frontend:
   - project/**/*
   - project/*
 
-component/backend:
-  - backend/**/*
-  - backend/*
-
 component/infrastructure:
-  - Dockerfile
-  - docker-compose.yml
-  - kubernetes/**/*
-  - helm/**/*
-  - render.yaml
+  - .gitignore
+  - .github/**/*
 
 component/ci-cd:
   - .github/workflows/**/*
@@ -23,8 +16,6 @@ component/dependencies:
   - package.json
   - package-lock.json
   - yarn.lock
-  - backend/package.json
-  - backend/package-lock.json
   - project/package.json
   - project/package-lock.json
 
@@ -42,7 +33,6 @@ component/tests:
   - '**/*.spec.jsx'
   - '**/*.spec.tsx'
   - project/cypress/**/*
-  - backend/test/**/*
 
 component/config:
   - '**/*.json'
@@ -52,16 +42,18 @@ component/config:
   - '**/*.config.ts'
   - .env.example
 
+component/api:
+  - project/src/api/**/*
+  - project/src/services/**/*
+
+component/security:
+  - '**/*security*'
+  - project/src/utils/auth.ts
+
 priority/high:
-  - backend/src/controllers/**/*
-  - backend/src/routes/**/*
-  - backend/src/middleware/auth.js
   - project/src/pages/**/*
   - project/src/components/Auth/**/*
 
 priority/security:
-  - backend/src/middleware/auth.js
-  - backend/src/utils/jwt.js
-  - backend/src/controllers/auth.js
   - project/src/utils/auth.js
   - project/src/context/AuthContext.js

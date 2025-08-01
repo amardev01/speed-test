@@ -1,22 +1,21 @@
 services:
-  # Unified Speed Test Application (Backend + Frontend)
   - type: web
-    name: sjpeedtestaplicationdp
-    env: docker
+    name: speedtest-app
+    env: php
     plan: free
-    dockerfilePath: ./Dockerfile
+    buildCommand: cd project && npm install && npm run build
+    startCommand: php -S 0.0.0.0:$PORT server.php
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 10000
-      - key: ENABLE_CLUSTER
-        value: "true"
-      - key: RATE_LIMIT_WINDOW_MS
-        value: "60000"
-      - key: RATE_LIMIT_MAX_REQUESTS
-        value: "500"
-      - key: KEEP_ALIVE_TIMEOUT
-        value: "65000"
-      - key: HEADERS_TIMEOUT
-        value: "66000"
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: speedtest-app
+          property: host
+      - key: VITE_WS_URL
+        fromService:
+          type: web
+          name: speedtest-app
+          property: host
+    healthCheckPath: /health

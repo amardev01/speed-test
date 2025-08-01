@@ -22,6 +22,11 @@ import serverConfig from '../config/serverConfig';
 
 // Simplified servers list - Cloudflare automatically routes to nearest edge
 function getCurrentOrigin(): string {
+  // In development, use LibreSpeed backend
+   if (import.meta.env.DEV) {
+     return 'http://localhost:8080';
+  }
+  
   // Safe way to get current origin that works in all environments
   if (typeof self !== 'undefined' && self.location) {
     return self.location.origin;
@@ -33,7 +38,7 @@ function getCurrentOrigin(): string {
 const servers: TestServer[] = [
   // Use current origin since Cloudflare automatically routes to nearest edge
   { id: 'cf-auto', name: 'Auto (Cloudflare)', location: 'Nearest Edge', host: getCurrentOrigin(), distance: 0 },
-  { id: 'local', name: 'Local Server', location: 'Custom Backend', host: 'http://localhost:3000', distance: 0 },
+  { id: 'local', name: 'Local Server', location: 'LibreSpeed Backend', host: 'http://localhost:8080', distance: 0 },
 ];
 
 // Worker state
@@ -160,7 +165,7 @@ async function runSpeedTest() {
 async function runXHRSpeedTest(bestServer, startTime) {
   // Ping measurement - collect multiple samples for better accuracy
   updateProgress('ping', 30, 0);
-  console.log('Starting ping measurements with backend-controlled ping testing');
+  console.log('Starting ping measurements with LibreSpeed backend');
   
   // Collect ping measurements
   const pings: number[] = [];
@@ -374,7 +379,7 @@ async function quickPing(url: string): Promise<number> {
   const MAX_RETRIES = 2;
   const TIMEOUT_MS = 2000;
   
-  // Extract the base URL to ensure we're using our backend
+  // Extract the base URL to ensure we're using our LibreSpeed backend
   const baseUrl = url.startsWith('http') ? new URL(url).origin : serverConfig.baseUrl;
   const pingUrl = `${baseUrl}${serverConfig.endpoints.ping}?nocache=${Date.now()}`;
   
@@ -536,7 +541,7 @@ async function measureDownloadSpeed(): Promise<number> {
   const startTime = performance.now();
   let measurements: number[] = [];
 
-  // Use our custom backend endpoint with multiple parallel connections
+  // Use our LibreSpeed backend endpoint with multiple parallel connections
   const testUrls = Array(config.parallelConnections).fill(null).map((_, i) => 
     `${serverConfig.baseUrl}${serverConfig.endpoints.download}?bytes=${1048576 + (i * 524288)}&nocache=${Date.now()}-${i}`
   );
@@ -728,7 +733,7 @@ async function measureUploadSpeed(): Promise<number> {
   const startTime = performance.now();
   let measurements: number[] = [];
 
-  // Use our custom backend endpoint for upload testing
+  // Use our LibreSpeed backend endpoint for upload testing
   const uploadEndpoint = `${serverConfig.baseUrl}${serverConfig.endpoints.upload}`;
   
   // Initialize grace period based on config setting

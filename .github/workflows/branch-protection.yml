@@ -37,10 +37,8 @@ jobs:
           PROTECTED_FILES=(
             "package.json"
             "package-lock.json"
-            "backend/package.json"
-            "backend/package-lock.json"
             "project/package.json"
-            "project/package-lock.json"
+             "project/package-lock.json"
             ".github/workflows/"
             "Dockerfile"
             "docker-compose.yml"
